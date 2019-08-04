@@ -1,0 +1,55 @@
+{
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"type": "object",
+	"properties": {
+		"functions": {
+			"type": "array",
+			"items": {
+				"$ref": "#/definitions/function"
+			}
+		},
+		"encoding": {
+			"type": "string"
+		},
+		"quality": {
+			"type": "integer",
+			"minimum": 0,
+			"maximum": 100
+		}
+	},
+	"required": [
+		"encoding"
+	],
+	"definitions": {
+		"function": {
+			"type": "object",
+			"properties": {
+				"id": {
+					"type": "string"
+				},
+				"parameters": {
+					"type": "array",
+					"items": {
+						"type": "object",
+						"properties": {
+							"key": {
+								"type": "string"
+							},
+							"value": {
+								"type": "string"
+							}
+						},
+						"required": [
+							"key",
+							"value"
+						]
+					}
+				}
+			},
+			"required": [
+				"id",
+				"parameters"
+			]
+		}
+	}
+}

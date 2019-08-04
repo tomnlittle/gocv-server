@@ -1,0 +1,15 @@
+version: '3.7'
+services:
+  gocv:
+    build:
+      context: .
+    working_dir: /go/src/github.com/tomnlittle/gocv-server
+    entrypoint: /go/bin/gocv-server
+    environment:
+      - AWS_REGION
+      - AWS_PROFILE
+    volumes:
+      - .:/go/src/github.com/tomnlittle/gocv-server
+      - ~/.aws:/root/.aws
+    ports:
+      - 8000:8000
