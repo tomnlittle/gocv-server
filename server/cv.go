@@ -3,6 +3,8 @@ package server
 import (
 	"fmt"
 	"image"
+	"image/color"
+	"math"
 	"strconv"
 
 	"gocv.io/x/gocv"
@@ -47,11 +49,12 @@ func parseStringAsInt(s string) (int, error) {
 		return -1, fmt.Errorf("Cannot cast string as int")
 	}
 
+	// TODO: Handle Overflow
 	return int(s64), nil
 }
 
-// EncodeMatrix .
-func EncodeMatrix(mat gocv.Mat, format, quality string) ([]byte, error) {
+// Encode .
+func Encode(mat gocv.Mat, format, quality string) ([]byte, error) {
 
 	// format needs to be defined as well if quality is
 	if format == "" && quality != "" {
@@ -92,17 +95,18 @@ type CVFunction func(mat gocv.Mat, parameters map[string]string) (*gocv.Mat, err
 
 // FunctionMappings maps an incoming id to the desired function
 var FunctionMappings = map[string]CVFunction{
-	"resize": ResizeMatrix,
+	"resize": Resize,
+	"rotate": Rotate,
 }
 
-// ResizeMatrix placeholder
-func ResizeMatrix(mat gocv.Mat, parameters map[string]string) (*gocv.Mat, error) {
+// Resize .
+func Resize(mat gocv.Mat, parameters map[string]string) (*gocv.Mat, error) {
 
 	width := parameters["width"]
 	height := parameters["height"]
 
 	if height == "" || width == "" {
-		return nil, fmt.Errorf("Height and Width are required fields for Resizing")
+		return nil, fmt.Errorf("'height' and 'width' are required fields for Resizing")
 	}
 
 	dst := gocv.NewMat()
@@ -120,6 +124,42 @@ func ResizeMatrix(mat gocv.Mat, parameters map[string]string) (*gocv.Mat, error)
 	point := image.Point{widthI, heightI}
 
 	gocv.Resize(mat, &dst, point, 0, 0, gocv.InterpolationArea)
+
+	return &dst, nil
+}
+
+// Rotate Note: Resultant Image may be larger than the original
+func Rotate(mat gocv.Mat, parameters map[string]string) (*gocv.Mat, error) {
+	angle := parameters["angle"]
+
+	if angle == "" {
+		return nil, fmt.Errorf("'angle' is a required filed for performing a rotation")
+	}
+
+	angleI, err := parseStringAsInt(angle)
+	if err != nil {
+		return nil, fmt.Errorf("Angle cannot be cast as Int")
+	}
+
+	angleF := float64(angleI)
+
+	width := float64(mat.Cols())
+	height := float64(mat.Rows())
+
+	// // calculate the new size
+	newWidth := int(width*math.Sin(angleF) + width)
+	newHeight := int(height*math.Cos(angleF) + height)
+
+	paddedMat := gocv.NewMat()
+	colour := color.RGBA{0, 0, 0, 0}
+	gocv.CopyMakeBorder(mat, &paddedMat, newHeight/2, newHeight/2, newWidth/2, newWidth/2, gocv.BorderConstant, colour)
+
+	// // TODO: Allow Float Angles
+	dst := gocv.NewMat()
+	newSize := image.Point{newWidth, newHeight}
+	centre := image.Point{newWidth / 2, newHeight / 2}
+	rMat := gocv.GetRotationMatrix2D(centre, float64(angleI), 1.0)
+	gocv.WarpAffineWithParams(paddedMat, &dst, rMat, newSize, gocv.InterpolationLinear, gocv.BorderConstant, colour)
 
 	return &dst, nil
 }

@@ -63,7 +63,7 @@ func (h *Handler) Simple(w http.ResponseWriter, r *http.Request) {
 	format := r.FormValue("format")
 	quality := r.FormValue("quality")
 
-	rBuf, err := EncodeMatrix(mat, format, quality)
+	rBuf, err := Encode(mat, format, quality)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -130,9 +130,9 @@ func (h *Handler) Complex(w http.ResponseWriter, r *middleware.ValidatedRequest)
 		mat = *rMat
 	}
 
-	// TODO parsed body string
+	// TODO: parsed body string
 	quality := fmt.Sprintf("%v", parsedBody.Quality)
-	rBuf, err := EncodeMatrix(mat, parsedBody.Encoding, quality)
+	rBuf, err := Encode(mat, parsedBody.Encoding, quality)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)

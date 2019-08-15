@@ -26,15 +26,11 @@ The 'complex' interface takes a PUT request and a JSON encoded body.
 
 There are three main components of the json body.
 
-<center>
-
 | Key           | Required           | Example Value  |
 | :------------- |:-------------:| :-----:|
 | encoding      | :heavy_check_mark: | png |
 | quality      | :x: | 50 |
 | functions | :x: | [] |
-
-</center>
 
 ### Example Request
 
@@ -66,12 +62,9 @@ With JSON Body
 ```
 
 # Implemented Functions
-<center>
 
 | OpenCV Function           | Implemented  |
 | :-------------: | :-------------: |
 | Resize      | :heavy_check_mark: |
 | Rotate      | :x: |
 | Perspective Transform | :x: |
-
-</center>
