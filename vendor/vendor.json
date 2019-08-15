@@ -237,6 +237,36 @@
 			"revisionTime": "2019-07-30T18:23:30Z"
 		},
 		{
+			"checksumSHA1": "56J7Zbj/haU4YAzYq+PvTfFxk8Y=",
+			"path": "github.com/bradfitz/gomemcache/memcache",
+			"revision": "551aad21a6682b95329c1f5bd62ee5060d64f7e8",
+			"revisionTime": "2019-03-29T17:39:43Z"
+		},
+		{
+			"path": "github.com/go-redis/redis/v7/internal",
+			"revision": "f6fc23d2fa45a343da89e81a24eb1176136b5712"
+		},
+		{
+			"path": "github.com/go-redis/redis/v7/internal/consistenthash",
+			"revision": "f6fc23d2fa45a343da89e81a24eb1176136b5712"
+		},
+		{
+			"path": "github.com/go-redis/redis/v7/internal/hashtag",
+			"revision": "f6fc23d2fa45a343da89e81a24eb1176136b5712"
+		},
+		{
+			"path": "github.com/go-redis/redis/v7/internal/pool",
+			"revision": "f6fc23d2fa45a343da89e81a24eb1176136b5712"
+		},
+		{
+			"path": "github.com/go-redis/redis/v7/internal/proto",
+			"revision": "f6fc23d2fa45a343da89e81a24eb1176136b5712"
+		},
+		{
+			"path": "github.com/go-redis/redis/v7/internal/util",
+			"revision": "f6fc23d2fa45a343da89e81a24eb1176136b5712"
+		},
+		{
 			"checksumSHA1": "942Y5peBcviGXJHOTpwH+14ir2c=",
 			"path": "github.com/gorilla/mux",
 			"revision": "e67b3c02c7195c052acff13261f0c9fd1ba53011",
@@ -273,5 +303,5 @@
 			"revisionTime": "2019-05-23T12:40:21Z"
 		}
 	],
-	"rootPath": "github.com/tomnlittle/scratch-go/CVServer"
+	"rootPath": "github.com/tomnlittle/gocv-server"
 }

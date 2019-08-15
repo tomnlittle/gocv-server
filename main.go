@@ -10,6 +10,7 @@ import (
 	"os/signal"
 	"time"
 
+	"github.com/bradfitz/gomemcache/memcache"
 	"github.com/gorilla/mux"
 	"github.com/tomnlittle/gocv-server/middleware"
 	"github.com/tomnlittle/gocv-server/server"
@@ -20,12 +21,19 @@ const Port = 8000
 
 func main() {
 
+	// read arguments
+	cacheEnabled := *flag.Bool("cache", false, "cache disabled by default")
+	cacheAddress := *flag.String("cache-address", "http://localhost:11211", "cache address")
+
+	// initialise cache
+	mc := memcache.New(cacheAddress)
+
 	handler := server.NewHandler()
 
 	r := mux.NewRouter()
 	r.HandleFunc("/v1/health", func(w http.ResponseWriter, r *http.Request) {})
 
-	r.HandleFunc("/v1/s3/{bucket}/{key}", handler.Simple).Methods("GET")
+	r.HandleFunc("/v1/s3/{bucket}/{key}", middleware.Cache(handler.Simple, cacheEnabled, mc)).Methods("GET")
 	r.HandleFunc("/v1/s3/{bucket}/{key}", middleware.Validator(handler.Complex, "file://./schemas/put.s3.json")).Methods("PUT")
 
 	run(r)
@@ -47,6 +55,7 @@ func run(r *mux.Router) {
 
 	// Run our server in a goroutine so that it doesn't block.
 	go func() {
+		log.Printf("Listening... %v\n", Port)
 		if err := srv.ListenAndServe(); err != nil {
 			log.Println(err)
 		}
