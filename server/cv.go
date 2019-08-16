@@ -50,6 +50,10 @@ func parseStringAsInt(s string) (int, error) {
 	return int(s64), nil
 }
 
+func parseStringAsFloat(s string) (float64, error) {
+	return strconv.ParseFloat(s, 32)
+}
+
 // EncodeMatrix .
 func EncodeMatrix(mat gocv.Mat, format, quality string) ([]byte, error) {
 
@@ -128,13 +132,32 @@ func ResizeMatrix(mat gocv.Mat, parameters map[string]string) (*gocv.Mat, error)
 // CLAHE - Contrast Limited Adaptive Histogram Equalisation - https://docs.opencv.org/3.1.0/d5/daf/tutorial_py_histogram_equalization.html
 func CLAHE(mat gocv.Mat, parameters map[string]string) (*gocv.Mat, error) {
 
-	// convert image to a LAB encoding before apply clahe
+	clip := parameters["clip"]
+	gridSize := parameters["gridSize"]
+
+	var err error
+	var clipF = 2.0
+	var gridSizeI = 8
+
+	if clip != "" {
+		clipF, err = parseStringAsFloat(clip)
+		if err != nil {
+			return nil, fmt.Errorf("Clip cannot be cast as int")
+		}
+	}
+
+	if gridSize != "" {
+		gridSizeI, err = parseStringAsInt(gridSize)
+		if err != nil {
+			return nil, fmt.Errorf("GridSize cannot be cast as int")
+		}
+	}
 
 	lab := gocv.NewMat()
 	gocv.CvtColor(mat, &lab, gocv.ColorRGBToLab)
 	mv := gocv.Split(lab)
 
-	clahe := gocv.NewCLAHEWithParams(2.0, image.Point{8, 8})
+	clahe := gocv.NewCLAHEWithParams(clipF, image.Point{gridSizeI, gridSizeI})
 	clahe.Apply(mv[0], &mv[0])
 
 	dst := gocv.NewMat()
