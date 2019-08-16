@@ -2,7 +2,6 @@ package server
 
 import (
 	"fmt"
-	"image"
 	"strconv"
 
 	"gocv.io/x/gocv"
@@ -92,7 +91,7 @@ func EncodeMatrix(mat gocv.Mat, format, quality string) ([]byte, error) {
 // ------------------------------------------------ Standardised Functions ---------------------------------------------
 
 // CVFunction .
-type CVFunction func(mat gocv.Mat, parameters map[string]string) (*gocv.Mat, error)
+type CVFunction func(mat gocv.Mat, parameters interface{}) (*gocv.Mat, error)
 
 // FunctionMappings maps an incoming id to the desired function
 var FunctionMappings = map[string]CVFunction{
@@ -101,69 +100,74 @@ var FunctionMappings = map[string]CVFunction{
 }
 
 // ResizeMatrix simple resizes an image to the given width and height
-func ResizeMatrix(mat gocv.Mat, parameters map[string]string) (*gocv.Mat, error) {
+func ResizeMatrix(mat gocv.Mat, parameters interface{}) (*gocv.Mat, error) {
 
-	width := parameters["width"]
-	height := parameters["height"]
+	// width := parameters["width"]
+	// height := parameters["height"]
 
-	if height == "" || width == "" {
-		return nil, fmt.Errorf("Height and Width are required fields for Resizing")
-	}
+	// if height == "" || width == "" {
+	// 	return nil, fmt.Errorf("Height and Width are required fields for Resizing")
+	// }
 
-	dst := gocv.NewMat()
+	// dst := gocv.NewMat()
 
-	heightI, err := parseStringAsInt(height)
-	if err != nil {
-		return nil, fmt.Errorf("Height cannot be cast as int")
-	}
+	// heightI, err := parseStringAsInt(height)
+	// if err != nil {
+	// 	return nil, fmt.Errorf("Height cannot be cast as int")
+	// }
 
-	widthI, err := parseStringAsInt(width)
-	if err != nil {
-		return nil, fmt.Errorf("Width cannot be cast as int")
-	}
+	// widthI, err := parseStringAsInt(width)
+	// if err != nil {
+	// 	return nil, fmt.Errorf("Width cannot be cast as int")
+	// }
 
-	point := image.Point{widthI, heightI}
+	// point := image.Point{widthI, heightI}
 
-	gocv.Resize(mat, &dst, point, 0, 0, gocv.InterpolationArea)
+	// gocv.Resize(mat, &dst, point, 0, 0, gocv.InterpolationArea)
 
-	return &dst, nil
+	// return &dst, nil
+
+	return &mat, nil
 }
 
 // CLAHE - Contrast Limited Adaptive Histogram Equalisation - https://docs.opencv.org/3.1.0/d5/daf/tutorial_py_histogram_equalization.html
-func CLAHE(mat gocv.Mat, parameters map[string]string) (*gocv.Mat, error) {
+func CLAHE(mat gocv.Mat, parameters interface{}) (*gocv.Mat, error) {
 
-	clip := parameters["clip"]
-	gridSize := parameters["gridSize"]
+	// clip := parameters["clip"]
+	// gridSize := parameters["gridSize"]
 
-	var err error
-	var clipF = 2.0
-	var gridSizeI = 8
+	// var err error
+	// var clipF = 2.0
+	// var gridSizeI = 8
 
-	if clip != "" {
-		clipF, err = parseStringAsFloat(clip)
-		if err != nil {
-			return nil, fmt.Errorf("Clip cannot be cast as int")
-		}
-	}
+	// if clip != "" {
+	// 	clipF, err = parseStringAsFloat(clip)
+	// 	if err != nil {
+	// 		return nil, fmt.Errorf("Clip cannot be cast as int")
+	// 	}
+	// }
 
-	if gridSize != "" {
-		gridSizeI, err = parseStringAsInt(gridSize)
-		if err != nil {
-			return nil, fmt.Errorf("GridSize cannot be cast as int")
-		}
-	}
+	// if gridSize != "" {
+	// 	gridSizeI, err = parseStringAsInt(gridSize)
+	// 	if err != nil {
+	// 		return nil, fmt.Errorf("GridSize cannot be cast as int")
+	// 	}
+	// }
 
-	lab := gocv.NewMat()
-	gocv.CvtColor(mat, &lab, gocv.ColorRGBToLab)
-	mv := gocv.Split(lab)
+	// lab := gocv.NewMat()
+	// gocv.CvtColor(mat, &lab, gocv.ColorRGBToLab)
+	// mv := gocv.Split(lab)
 
-	clahe := gocv.NewCLAHEWithParams(clipF, image.Point{gridSizeI, gridSizeI})
-	clahe.Apply(mv[0], &mv[0])
+	// clahe := gocv.NewCLAHEWithParams(clipF, image.Point{gridSizeI, gridSizeI})
+	// clahe.Apply(mv[0], &mv[0])
 
-	dst := gocv.NewMat()
-	gocv.Merge(mv, &dst)
+	// dst := gocv.NewMat()
+	// gocv.Merge(mv, &dst)
 
-	gocv.CvtColor(dst, &dst, gocv.ColorLabToRGB)
+	// gocv.CvtColor(dst, &dst, gocv.ColorLabToRGB)
 
-	return &dst, nil
+	// return &dst, nil
+
+	return &mat, nil
+
 }

@@ -24,30 +24,36 @@
 		"function": {
 			"type": "object",
 			"properties": {
-				"functionID": {
-					"type": "string"
+				"function": {
+					"type": "string",
+                    "enum": ["resize", "clahe"]
 				},
 				"parameters": {
-					"type": "array",
-					"items": {
-						"type": "object",
-						"properties": {
-							"key": {
-								"type": "string"
-							},
-							"value": {
-								"type": "string"
+					"type": "object",
+					"allOf": [{
+						"if": { "properties": { "functionID": { "const" :"resize"}} },
+						"then": {
+							"properties": {
+								 "width": { "type": "integer"},
+								 "height": { "type": "integer"}
 							}
-						},
-						"required": [
-							"key",
-							"value"
-						]
-					}
+
+						}
+					  },
+					  {
+						"if": { "properties": { "functionID": { "const" :"clahe"}} },
+						"then": {
+							"properties": {
+								 "clip": { "type": "number"},
+								 "gridSize": { "type": "integer"}
+							}
+						}
+					  }
+					]
 				}
-			},
+            },
 			"required": [
-				"functionID",
+				"function",
 				"parameters"
 			]
 		}

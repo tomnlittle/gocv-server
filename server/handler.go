@@ -74,14 +74,9 @@ type ComplexHandlerJSON struct {
 	Encoding  string `json:"encoding"`
 	Quality   int    `json:"quality"`
 	Functions []struct {
-		FunctionID string                     `json:"functionID"`
-		Parameters []complexHandlerParameters `json:"parameters"`
+		FunctionID string        `json:"functionID"`
+		Parameters []interface{} `json:"parameters"`
 	} `json:"functions"`
-}
-
-type complexHandlerParameters struct {
-	Key   string `json:"key"`
-	Value string `json:"value"`
 }
 
 // Complex handler takes json objects as input and 'curries' the matrix through
@@ -112,9 +107,9 @@ func (h *Handler) Complex(w http.ResponseWriter, r *middleware.ProcessedRequest)
 			return
 		}
 
-		params := buildParameterMapping(v.Parameters)
+		fmt.Println(v.Parameters)
 
-		rMat, err := cvFunc(mat, params)
+		rMat, err := cvFunc(mat, v.Parameters)
 
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -134,13 +129,4 @@ func (h *Handler) Complex(w http.ResponseWriter, r *middleware.ProcessedRequest)
 	}
 
 	w.Write(rBuf)
-}
-
-func buildParameterMapping(parameters []complexHandlerParameters) map[string]string {
-	mapping := make(map[string]string)
-	for _, v := range parameters {
-		mapping[v.Key] = v.Value
-	}
-
-	return mapping
 }
