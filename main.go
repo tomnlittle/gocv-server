@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/tomnlittle/gocv-server/cache"
 	"github.com/tomnlittle/gocv-server/middleware"
 	"github.com/tomnlittle/gocv-server/server"
 )
@@ -20,13 +21,30 @@ const Port = 8000
 
 func main() {
 
-	handler := server.NewHandler()
+	// read arguments
+	cacheEnabled := flag.Bool("cache", false, "cache disabled by default")
+	cacheAddress := flag.String("cache-address", "memcache:11211", "cache address")
+	flag.Parse()
+
+	// initialise cache
+	mc, err := cache.NewCache(*cacheEnabled, *cacheAddress)
+	if err != nil {
+		log.Fatal(err)
+		os.Exit(1)
+	}
+
+	awsConfig, err := server.NewAwsConfig(mc)
+	if err != nil {
+		log.Fatal(err)
+		os.Exit(1)
+	}
+
+	handler := server.NewHandler(awsConfig)
 
 	r := mux.NewRouter()
 	r.HandleFunc("/v1/health", func(w http.ResponseWriter, r *http.Request) {})
-
-	r.HandleFunc("/v1/s3/{bucket}/{key}", handler.Simple).Methods("GET")
-	r.HandleFunc("/v1/s3/{bucket}/{key}", middleware.Validator(handler.Complex, "file://./schemas/put.s3.json")).Methods("PUT")
+	r.HandleFunc("/v1/s3/{bucket}/{key}", middleware.ProcessRequest(middleware.Cache(handler.Simple, mc))).Methods("GET")
+	r.HandleFunc("/v1/s3/{bucket}/{key}", middleware.ProcessRequest(middleware.Validator(middleware.Cache(handler.Complex, mc), "file://./schemas/put.s3.json"))).Methods("PUT")
 
 	run(r)
 }
@@ -47,6 +65,7 @@ func run(r *mux.Router) {
 
 	// Run our server in a goroutine so that it doesn't block.
 	go func() {
+		log.Printf("Listening... %v\n", Port)
 		if err := srv.ListenAndServe(); err != nil {
 			log.Println(err)
 		}

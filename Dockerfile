@@ -3,6 +3,8 @@ FROM denismakogon/gocv-alpine:4.0.1-buildstage as build-stage
 RUN go get -u -d gocv.io/x/gocv
 RUN cd $GOPATH/src/gocv.io/x/gocv && go build -o $GOPATH/bin/gocv-version ./cmd/version/main.go
 
+# ADD Gopkg.* /go/src/github.com/tomnlittle/gocv-server
+# RUN dep ensure --vendor-only
 ADD . /go/src/github.com/tomnlittle/gocv-server
 RUN go install /go/src/github.com/tomnlittle/gocv-server
 

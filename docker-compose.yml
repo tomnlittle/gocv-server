@@ -4,7 +4,7 @@ services:
     build:
       context: .
     working_dir: /go/src/github.com/tomnlittle/gocv-server
-    entrypoint: /go/bin/gocv-server
+    command: /go/bin/gocv-server -cache
     environment:
       - AWS_REGION
       - AWS_PROFILE
@@ -13,3 +13,8 @@ services:
       - ~/.aws:/root/.aws
     ports:
       - 8000:8000
+
+  memcache:
+    image: bitnami/memcached
+    environment:
+      - MEMCACHED_CACHE_SIZE=512
