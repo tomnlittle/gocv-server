@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/tomnlittle/gocv-server/cache"
+
 	"github.com/gorilla/mux"
 	"github.com/tomnlittle/gocv-server/middleware"
 	"gocv.io/x/gocv"
@@ -16,9 +18,9 @@ type Handler struct {
 }
 
 // NewHandler returns an initialised handler
-func NewHandler() *Handler {
+func NewHandler(mc *cache.ImageCache) *Handler {
 
-	awsConfig, err := NewAwsConfig()
+	awsConfig, err := NewAwsConfig(mc)
 
 	if err != nil {
 		panic(err.Error())
@@ -45,9 +47,9 @@ func getImage(r *http.Request, h *Handler) ([]byte, error) {
 // ------------------------------------------------ Simple Handler -----------------------------------------------------
 
 // Simple .
-func (h *Handler) Simple(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) Simple(w http.ResponseWriter, r *middleware.ProcessedRequest) {
 
-	buffer, err := getImage(r, h)
+	buffer, err := getImage(r.RawRequest, h)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -60,8 +62,8 @@ func (h *Handler) Simple(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	format := r.FormValue("format")
-	quality := r.FormValue("quality")
+	format := r.RawRequest.FormValue("format")
+	quality := r.RawRequest.FormValue("quality")
 
 	rBuf, err := EncodeMatrix(mat, format, quality)
 
@@ -80,7 +82,7 @@ type ComplexHandlerJSON struct {
 	Encoding  string `json:"encoding"`
 	Quality   int    `json:"quality"`
 	Functions []struct {
-		ID         string                     `json:"id"`
+		FunctionID string                     `json:"functionID"`
 		Parameters []complexHandlerParameters `json:"parameters"`
 	} `json:"functions"`
 }
@@ -92,10 +94,10 @@ type complexHandlerParameters struct {
 
 // Complex handler takes json objects as input and 'curries' the matrix through
 // the desired functions outlined in the json object
-func (h *Handler) Complex(w http.ResponseWriter, r *middleware.ValidatedRequest) {
+func (h *Handler) Complex(w http.ResponseWriter, r *middleware.ProcessedRequest) {
 
 	var parsedBody ComplexHandlerJSON
-	err := json.Unmarshal(r.ValidatedJSON, &parsedBody)
+	err := json.Unmarshal(r.JSON, &parsedBody)
 
 	if err != nil {
 		http.Error(w, "", http.StatusInternalServerError)
@@ -111,10 +113,10 @@ func (h *Handler) Complex(w http.ResponseWriter, r *middleware.ValidatedRequest)
 	mat, err := gocv.IMDecode(buffer, gocv.IMReadColor)
 
 	for _, v := range parsedBody.Functions {
-		cvFunc, ok := FunctionMappings[v.ID]
+		cvFunc, ok := FunctionMappings[v.FunctionID]
 
 		if !ok {
-			http.Error(w, fmt.Sprintf("Invalid function id %v", v.ID), http.StatusBadRequest)
+			http.Error(w, fmt.Sprintf("Invalid functionID %v", v.FunctionID), http.StatusBadRequest)
 			return
 		}
 

@@ -1,12 +1,8 @@
 # Setup
 
 ## Docker
-AWS_PROFILE and AWS_REGION need to be set in your shell, these will be inherited
-by the application in order to connect to S3
-
-Then run
 ```sh
-docker-compose -f docker-compose.yml up --build
+AWS_REGION=us-east-1 AWS_PROFILE=personal docker-compose up --remove-orphans --build
 ```
 
 # Interface
@@ -49,7 +45,7 @@ With JSON Body
     "quality": 100,
     "functions": [
         {
-            "id": "resize",
+            "functionID": "resize",
             "parameters": [
                 {
                     "key": "width",

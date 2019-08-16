@@ -24,7 +24,7 @@
 		"function": {
 			"type": "object",
 			"properties": {
-				"id": {
+				"functionID": {
 					"type": "string"
 				},
 				"parameters": {
@@ -47,7 +47,7 @@
 				}
 			},
 			"required": [
-				"id",
+				"functionID",
 				"parameters"
 			]
 		}

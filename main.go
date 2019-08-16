@@ -10,8 +10,8 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/bradfitz/gomemcache/memcache"
 	"github.com/gorilla/mux"
+	"github.com/tomnlittle/gocv-server/cache"
 	"github.com/tomnlittle/gocv-server/middleware"
 	"github.com/tomnlittle/gocv-server/server"
 )
@@ -22,19 +22,25 @@ const Port = 8000
 func main() {
 
 	// read arguments
-	cacheEnabled := *flag.Bool("cache", false, "cache disabled by default")
-	cacheAddress := *flag.String("cache-address", "http://localhost:11211", "cache address")
+	cacheEnabled := flag.Bool("cache", false, "cache disabled by default")
+	cacheAddress := flag.String("cache-address", "memcache:11211", "cache address")
+	flag.Parse()
 
 	// initialise cache
-	mc := memcache.New(cacheAddress)
+	mc, err := cache.NewCache(*cacheEnabled, *cacheAddress)
 
-	handler := server.NewHandler()
+	if err != nil {
+		log.Fatal(err)
+		os.Exit(1)
+	}
+
+	handler := server.NewHandler(mc)
 
 	r := mux.NewRouter()
 	r.HandleFunc("/v1/health", func(w http.ResponseWriter, r *http.Request) {})
 
-	r.HandleFunc("/v1/s3/{bucket}/{key}", middleware.Cache(handler.Simple, cacheEnabled, mc)).Methods("GET")
-	r.HandleFunc("/v1/s3/{bucket}/{key}", middleware.Validator(handler.Complex, "file://./schemas/put.s3.json")).Methods("PUT")
+	r.HandleFunc("/v1/s3/{bucket}/{key}", middleware.ProcessRequest(middleware.Cache(handler.Simple, mc))).Methods("GET")
+	r.HandleFunc("/v1/s3/{bucket}/{key}", middleware.ProcessRequest(middleware.Validator(middleware.Cache(handler.Complex, mc), "file://./schemas/put.s3.json"))).Methods("PUT")
 
 	run(r)
 }
