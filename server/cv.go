@@ -93,9 +93,10 @@ type CVFunction func(mat gocv.Mat, parameters map[string]string) (*gocv.Mat, err
 // FunctionMappings maps an incoming id to the desired function
 var FunctionMappings = map[string]CVFunction{
 	"resize": ResizeMatrix,
+	"clahe":  CLAHE,
 }
 
-// ResizeMatrix placeholder
+// ResizeMatrix simple resizes an image to the given width and height
 func ResizeMatrix(mat gocv.Mat, parameters map[string]string) (*gocv.Mat, error) {
 
 	width := parameters["width"]
@@ -120,6 +121,26 @@ func ResizeMatrix(mat gocv.Mat, parameters map[string]string) (*gocv.Mat, error)
 	point := image.Point{widthI, heightI}
 
 	gocv.Resize(mat, &dst, point, 0, 0, gocv.InterpolationArea)
+
+	return &dst, nil
+}
+
+// CLAHE - Contrast Limited Adaptive Histogram Equalisation - https://docs.opencv.org/3.1.0/d5/daf/tutorial_py_histogram_equalization.html
+func CLAHE(mat gocv.Mat, parameters map[string]string) (*gocv.Mat, error) {
+
+	// convert image to a LAB encoding before apply clahe
+
+	lab := gocv.NewMat()
+	gocv.CvtColor(mat, &lab, gocv.ColorRGBToLab)
+	mv := gocv.Split(lab)
+
+	clahe := gocv.NewCLAHEWithParams(2.0, image.Point{8, 8})
+	clahe.Apply(mv[0], &mv[0])
+
+	dst := gocv.NewMat()
+	gocv.Merge(mv, &dst)
+
+	gocv.CvtColor(dst, &dst, gocv.ColorLabToRGB)
 
 	return &dst, nil
 }
