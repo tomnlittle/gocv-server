@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/tomnlittle/gocv-server/cache"
-
 	"github.com/gorilla/mux"
 	"github.com/tomnlittle/gocv-server/middleware"
 	"gocv.io/x/gocv"
@@ -18,16 +16,10 @@ type Handler struct {
 }
 
 // NewHandler returns an initialised handler
-func NewHandler(mc *cache.ImageCache) *Handler {
-
-	awsConfig, err := NewAwsConfig(mc)
-
-	if err != nil {
-		panic(err.Error())
-	}
+func NewHandler(aws *AwsConfig) *Handler {
 
 	return &Handler{
-		AwsConfig: awsConfig,
+		AwsConfig: aws,
 	}
 }
 

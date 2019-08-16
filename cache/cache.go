@@ -11,8 +11,7 @@ import (
 
 // ImageCache .
 type ImageCache struct {
-	Client    *memcache.Client
-	Namespace *uuid.UUID
+	Client *memcache.Client
 }
 
 // NewCache .
@@ -20,21 +19,14 @@ func NewCache(active bool, address string) (*ImageCache, error) {
 	if !active {
 		fmt.Println("============ Cache disabled ==============")
 		return &ImageCache{
-			Client:    nil,
-			Namespace: nil,
+			Client: nil,
 		}, nil
 	}
 
 	mc := memcache.New(address)
 
-	id, err := uuid.NewV4()
-	if err != nil {
-		return nil, err
-	}
-
 	return &ImageCache{
-		Client:    mc,
-		Namespace: &id,
+		Client: mc,
 	}, nil
 }
 
@@ -98,11 +90,11 @@ func (c ImageCache) AddBytes(key string, buf []byte) error {
 }
 
 // GenerateHash .
-func (c ImageCache) GenerateHash(keys ...string) string {
+func (c ImageCache) GenerateHash(ns uuid.UUID, keys ...string) string {
 	buf := bytes.Buffer{}
 	for _, v := range keys {
 		buf.WriteString(v)
 	}
 
-	return uuid.NewV5(*c.Namespace, buf.String()).String()
+	return uuid.NewV5(ns, buf.String()).String()
 }

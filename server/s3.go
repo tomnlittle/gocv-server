@@ -5,13 +5,15 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
+	uuid "github.com/satori/go.uuid"
 	"github.com/tomnlittle/gocv-server/cache"
 )
 
 // AwsConfig configuration
 type AwsConfig struct {
-	S3Downloader *s3manager.Downloader
-	Cache        *cache.ImageCache
+	S3Downloader   *s3manager.Downloader
+	Cache          *cache.ImageCache
+	CacheNamespace uuid.UUID
 }
 
 // NewAwsConfig returns a new AWS configuration
@@ -26,9 +28,15 @@ func NewAwsConfig(mc *cache.ImageCache) (*AwsConfig, error) {
 		return nil, err
 	}
 
+	namespace, err := uuid.NewV4()
+	if err != nil {
+		return nil, err
+	}
+
 	return &AwsConfig{
-		S3Downloader: s3manager.NewDownloader(sess),
-		Cache:        mc,
+		S3Downloader:   s3manager.NewDownloader(sess),
+		Cache:          mc,
+		CacheNamespace: namespace,
 	}, nil
 }
 
@@ -36,7 +44,7 @@ func NewAwsConfig(mc *cache.ImageCache) (*AwsConfig, error) {
 func (a *AwsConfig) GetObject(bucket, key string) ([]byte, error) {
 
 	// check if the image is in the cache
-	hash := a.Cache.GenerateHash(bucket, key)
+	hash := a.Cache.GenerateHash(a.CacheNamespace, bucket, key)
 	bytes, err := a.Cache.GetBytes(hash)
 
 	if err != nil {

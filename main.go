@@ -28,17 +28,21 @@ func main() {
 
 	// initialise cache
 	mc, err := cache.NewCache(*cacheEnabled, *cacheAddress)
-
 	if err != nil {
 		log.Fatal(err)
 		os.Exit(1)
 	}
 
-	handler := server.NewHandler(mc)
+	awsConfig, err := server.NewAwsConfig(mc)
+	if err != nil {
+		log.Fatal(err)
+		os.Exit(1)
+	}
+
+	handler := server.NewHandler(awsConfig)
 
 	r := mux.NewRouter()
 	r.HandleFunc("/v1/health", func(w http.ResponseWriter, r *http.Request) {})
-
 	r.HandleFunc("/v1/s3/{bucket}/{key}", middleware.ProcessRequest(middleware.Cache(handler.Simple, mc))).Methods("GET")
 	r.HandleFunc("/v1/s3/{bucket}/{key}", middleware.ProcessRequest(middleware.Validator(middleware.Cache(handler.Complex, mc), "file://./schemas/put.s3.json"))).Methods("PUT")
 
