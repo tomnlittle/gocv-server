@@ -1,9 +1,6 @@
-# Setup
+# OpenCV Server
+This project aims to provide a REST interface for processing images with OpenCV. 
 
-## Docker
-```sh
-AWS_REGION=us-east-1 AWS_PROFILE=personal docker-compose up --remove-orphans --build
-```
 
 # Interface
 

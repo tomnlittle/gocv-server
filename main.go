@@ -11,8 +11,6 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-	"github.com/tomnlittle/gocv-server/cache"
-	"github.com/tomnlittle/gocv-server/middleware"
 	"github.com/tomnlittle/gocv-server/server"
 )
 
@@ -20,31 +18,12 @@ import (
 const Port = 8000
 
 func main() {
-
-	// read arguments
-	cacheEnabled := flag.Bool("cache", false, "cache disabled by default")
-	cacheAddress := flag.String("cache-address", "memcache:11211", "cache address")
-	flag.Parse()
-
-	// initialise cache
-	mc, err := cache.NewCache(*cacheEnabled, *cacheAddress)
-	if err != nil {
-		log.Fatal(err)
-		os.Exit(1)
-	}
-
-	awsConfig, err := server.NewAwsConfig(mc)
-	if err != nil {
-		log.Fatal(err)
-		os.Exit(1)
-	}
-
 	handler := server.NewHandler(awsConfig)
 
 	r := mux.NewRouter()
 	r.HandleFunc("/v1/health", func(w http.ResponseWriter, r *http.Request) {})
-	r.HandleFunc("/v1/s3/{bucket}/{key}", middleware.ProcessRequest(middleware.Cache(handler.Simple, mc))).Methods("GET")
-	r.HandleFunc("/v1/s3/{bucket}/{key}", middleware.ProcessRequest(middleware.Validator(middleware.Cache(handler.Complex, mc), "file://./schemas/put.s3.json"))).Methods("PUT")
+//	r.handlefunc("/v1/s3/{bucket}/{key}", middleware.processrequest(middleware.cache(handler.simple, mc))).methods("get")
+//	r.handlefunc("/v1/s3/{bucket}/{key}", middleware.processrequest(middleware.validator(middleware.cache(handler.complex, mc), "file://./schemas/put.s3.json"))).methods("put")
 
 	run(r)
 }
@@ -72,7 +51,7 @@ func run(r *mux.Router) {
 	}()
 
 	c := make(chan os.Signal, 1)
-	// We'll accept graceful shutdowns when quit via SIGINT (Ctrl+C)
+	// Accept graceful shutdowns when quit via SIGINT (Ctrl+C)
 	// SIGKILL, SIGQUIT or SIGTERM (Ctrl+/) will not be caught.
 	signal.Notify(c, os.Interrupt)
 
@@ -82,12 +61,14 @@ func run(r *mux.Router) {
 	// Create a deadline to wait for.
 	ctx, cancel := context.WithTimeout(context.Background(), wait)
 	defer cancel()
+
 	// Doesn't block if no connections, but will otherwise wait
 	// until the timeout deadline.
 	srv.Shutdown(ctx)
+
 	// Optionally, you could run srv.Shutdown in a goroutine and block on
 	// <-ctx.Done() if your application should wait for other services
 	// to finalize based on context cancellation.
-	log.Println("shutting down")
+	log.Println("Shutting Down")
 	os.Exit(0)
 }
